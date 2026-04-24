@@ -143,8 +143,8 @@ export default function RegistrationForm() {
       </div>
 
       <div className="text-center mb-10">
-        <h1 className="text-5xl md:text-7xl font-display text-electric-orange text-shadow-orange mb-4 tracking-tight -rotate-1">
-          PENDAFTARAN<br/>SERTIJAB
+        <h1 className="text-4xl md:text-7xl font-display text-electric-orange text-shadow-orange mb-4 tracking-tight -rotate-1">
+          PENDATAAN<br/>SERTIJAB
         </h1>
         <div className="inline-block px-4 py-1 bg-dark-espresso text-cream font-subhead font-bold text-sm rounded-lg tracking-[0.3em] uppercase">
           UKM PCC POLINES 2026

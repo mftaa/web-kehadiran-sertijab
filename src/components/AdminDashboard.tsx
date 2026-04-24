@@ -14,7 +14,9 @@ import {
   UserPlus, 
   LayoutDashboard, 
   ListFilter,
-  ArrowRightLeft
+  ArrowRightLeft,
+  AlertTriangle,
+  HeartPulse
 } from 'lucide-react';
 
 interface Registration {
@@ -27,6 +29,8 @@ interface Registration {
   is_present: boolean;
   has_vehicle: boolean;
   ready_to_drive: boolean;
+  food_allergy?: string;
+  illness_history?: string;
   payment_method?: string;
   payment_proof_url?: string;
   absence_reason?: string;
@@ -37,7 +41,7 @@ interface Registration {
 export default function AdminDashboard({ initialData }: { initialData: Registration[] }) {
   const [data, setData] = useState<Registration[]>(initialData);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<'list' | 'plotting'>('list');
+  const [activeTab, setActiveTab] = useState<'list' | 'plotting' | 'allergy' | 'illness'>('list');
   const supabase = createClient();
 
   const filteredData = data.filter((item) =>
@@ -67,8 +71,11 @@ export default function AdminDashboard({ initialData }: { initialData: Registrat
   const leftoverDrivers = drivers.slice(maxPairs);
   const leftoverPassengers = passengers.slice(maxPairs);
 
+  const allergyList = data.filter(item => item.is_present && item.food_allergy && item.food_allergy.trim() !== '');
+  const illnessList = data.filter(item => item.is_present && item.illness_history && item.illness_history.trim() !== '');
+
   const exportCSV = () => {
-    const headers = ['Nama', 'NIM', 'Kelas', 'Prodi', 'WA', 'Hadir', 'Bawa Motor', 'Metode Bayar', 'Alasan'];
+    const headers = ['Nama', 'NIM', 'Kelas', 'Prodi', 'WA', 'Hadir', 'Alergi', 'Penyakit', 'Bawa Motor', 'Metode Bayar', 'Alasan'];
     const rows = data.map((item) => [
       item.full_name,
       item.nim,
@@ -76,6 +83,8 @@ export default function AdminDashboard({ initialData }: { initialData: Registrat
       item.study_program,
       item.whatsapp,
       item.is_present ? 'Ya' : 'Tidak',
+      item.food_allergy || '-',
+      item.illness_history || '-',
       item.has_vehicle ? 'Ya' : 'Tidak',
       item.payment_method || '-',
       item.absence_reason || '-',
@@ -134,7 +143,7 @@ export default function AdminDashboard({ initialData }: { initialData: Registrat
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 p-1.5 bg-black/20 rounded-2xl w-fit mx-auto border-3 border-dark-espresso shadow-[4px_4px_0px_var(--color-deep-cocoa)]">
+      <div className="flex flex-wrap gap-2 p-1.5 bg-black/20 rounded-2xl w-fit mx-auto border-3 border-dark-espresso shadow-[4px_4px_0px_var(--color-deep-cocoa)]">
         <button
           onClick={() => setActiveTab('list')}
           className={cn(
@@ -156,6 +165,28 @@ export default function AdminDashboard({ initialData }: { initialData: Registrat
           )}
         >
           <ArrowRightLeft className="inline-block w-4 h-4 mr-2" /> PLOTTINGAN
+        </button>
+        <button
+          onClick={() => setActiveTab('allergy')}
+          className={cn(
+            "px-6 py-2.5 rounded-xl font-subhead font-bold text-sm uppercase tracking-widest transition-all",
+            activeTab === 'allergy' 
+              ? "bg-electric-orange text-white shadow-[3px_3px_0px_#602600] translate-y-[-2px]" 
+              : "text-cream/40 hover:text-cream hover:bg-white/5"
+          )}
+        >
+          <AlertTriangle className="inline-block w-4 h-4 mr-2" /> DATA ALERGI
+        </button>
+        <button
+          onClick={() => setActiveTab('illness')}
+          className={cn(
+            "px-6 py-2.5 rounded-xl font-subhead font-bold text-sm uppercase tracking-widest transition-all",
+            activeTab === 'illness' 
+              ? "bg-electric-orange text-white shadow-[3px_3px_0px_#602600] translate-y-[-2px]" 
+              : "text-cream/40 hover:text-cream hover:bg-white/5"
+          )}
+        >
+          <HeartPulse className="inline-block w-4 h-4 mr-2" /> DATA SAKIT
         </button>
       </div>
 
@@ -247,7 +278,7 @@ export default function AdminDashboard({ initialData }: { initialData: Registrat
             </div>
           </div>
         </div>
-      ) : (
+      ) : activeTab === 'plotting' ? (
         <div className="space-y-8 animate-in slide-in-from-bottom-5 duration-500">
           <div className="bg-electric-orange/10 p-6 tactile-card border-electric-orange border-dashed">
             <h3 className="font-display text-2xl text-dark-espresso mb-2">SIMULASI PLOTTINGAN</h3>
@@ -322,6 +353,114 @@ export default function AdminDashboard({ initialData }: { initialData: Registrat
               </div>
             </div>
           )}
+        </div>
+      ) : activeTab === 'allergy' ? (
+        <div className="space-y-6 animate-in slide-in-from-bottom-5 duration-500">
+          <div className="flex justify-between items-center">
+            <h3 className="font-display text-2xl text-dark-espresso flex items-center">
+              <AlertTriangle className="w-6 h-6 mr-2 text-electric-orange" /> REKAP ALERGI MAKANAN
+            </h3>
+            <Button 
+              variant="secondary" 
+              onClick={() => {
+                const text = allergyList.map((item, index) => `${index + 1}. ${item.full_name} (${item.class}): ${item.food_allergy}`).join('\n');
+                navigator.clipboard.writeText(text);
+                alert('Data alergi berhasil disalin ke clipboard!');
+              }}
+              className="px-6 py-2 text-xs"
+            >
+              SALIN REKAP
+            </Button>
+          </div>
+
+          <div className="tactile-card bg-white overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left font-body border-collapse">
+                <thead className="bg-electric-orange text-white font-subhead uppercase tracking-widest text-xs">
+                  <tr>
+                    <th className="px-6 py-4 border-b-4 border-deep-cocoa w-16 text-center">NO</th>
+                    <th className="px-6 py-4 border-b-4 border-deep-cocoa">NAMA PESERTA</th>
+                    <th className="px-6 py-4 border-b-4 border-deep-cocoa">NIM / KELAS</th>
+                    <th className="px-6 py-4 border-b-4 border-deep-cocoa">DETAIL ALERGI</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y-2 divide-dark-espresso/5 text-dark-espresso">
+                  {allergyList.map((item, index) => (
+                    <tr key={item.id} className="hover:bg-soft-cream transition-colors">
+                      <td className="px-6 py-4 text-center font-bold opacity-30">{index + 1}</td>
+                      <td className="px-6 py-4 font-bold uppercase">{item.full_name}</td>
+                      <td className="px-6 py-4">
+                        <p className="text-xs font-bold">{item.nim}</p>
+                        <p className="text-[10px] uppercase font-subhead text-rustic-brown">{item.class}</p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="px-3 py-1 bg-electric-orange/10 text-electric-orange rounded-lg font-bold text-xs border border-electric-orange/20">
+                          {item.food_allergy}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {allergyList.length === 0 && (
+                <div className="p-20 text-center text-dark-espresso/20 italic">Tidak ada data alergi</div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-6 animate-in slide-in-from-bottom-5 duration-500">
+          <div className="flex justify-between items-center">
+            <h3 className="font-display text-2xl text-dark-espresso flex items-center">
+              <HeartPulse className="w-6 h-6 mr-2 text-rustic-brown" /> REKAP RIWAYAT PENYAKIT
+            </h3>
+            <Button 
+              variant="secondary" 
+              onClick={() => {
+                const text = illnessList.map((item, index) => `${index + 1}. ${item.full_name} (${item.class}): ${item.illness_history}`).join('\n');
+                navigator.clipboard.writeText(text);
+                alert('Data riwayat penyakit berhasil disalin ke clipboard!');
+              }}
+              className="px-6 py-2 text-xs"
+            >
+              SALIN REKAP
+            </Button>
+          </div>
+
+          <div className="tactile-card bg-white overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left font-body border-collapse">
+                <thead className="bg-rustic-brown text-white font-subhead uppercase tracking-widest text-xs">
+                  <tr>
+                    <th className="px-6 py-4 border-b-4 border-deep-cocoa w-16 text-center">NO</th>
+                    <th className="px-6 py-4 border-b-4 border-deep-cocoa">NAMA PESERTA</th>
+                    <th className="px-6 py-4 border-b-4 border-deep-cocoa">NIM / KELAS</th>
+                    <th className="px-6 py-4 border-b-4 border-deep-cocoa">DETAIL PENYAKIT</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y-2 divide-dark-espresso/5 text-dark-espresso">
+                  {illnessList.map((item, index) => (
+                    <tr key={item.id} className="hover:bg-soft-cream transition-colors">
+                      <td className="px-6 py-4 text-center font-bold opacity-30">{index + 1}</td>
+                      <td className="px-6 py-4 font-bold uppercase">{item.full_name}</td>
+                      <td className="px-6 py-4">
+                        <p className="text-xs font-bold">{item.nim}</p>
+                        <p className="text-[10px] uppercase font-subhead text-rustic-brown">{item.class}</p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="px-3 py-1 bg-rustic-brown/10 text-rustic-brown rounded-lg font-bold text-xs border border-rustic-brown/20">
+                          {item.illness_history}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {illnessList.length === 0 && (
+                <div className="p-20 text-center text-dark-espresso/20 italic">Tidak ada data riwayat penyakit</div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
