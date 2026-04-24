@@ -1,26 +1,111 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-electric-orange: #FF6500;
+  --color-soft-tangerine: #FE7A36;
+  --color-burnt-orange: #D65F02;
+  --color-rustic-brown: #993D00;
+  --color-deep-cocoa: #602600;
+  --color-dark-espresso: #331400;
+  --color-cream: #FFDCA8;
+  --color-soft-cream: #FFF5E6;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-display: var(--font-bungee);
+  --font-subhead: var(--font-josefin);
+  --font-body: var(--font-poppins);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-dark-espresso);
+  color: #ffffff;
+  font-family: var(--font-body), sans-serif;
+}
+
+@layer utilities {
+  .text-shadow-tactile {
+    text-shadow: 3px 3px 0px var(--color-deep-cocoa);
+  }
+
+  .text-shadow-orange {
+    text-shadow: 2px 2px 0px var(--color-burnt-orange), 4px 4px 0px var(--color-deep-cocoa);
+  }
+
+  .tactile-card {
+    background-color: var(--color-cream);
+    border: 4px solid var(--color-dark-espresso);
+    box-shadow: 8px 8px 0px var(--color-deep-cocoa);
+    border-radius: 1.5rem;
+  }
+
+  .tactile-input {
+    background-color: var(--color-soft-cream);
+    border: 3px solid var(--color-dark-espresso);
+    box-shadow: 4px 4px 0px var(--color-deep-cocoa);
+    transition: all 0.1s ease;
+  }
+
+  .tactile-input:focus-within {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px var(--color-deep-cocoa);
+  }
+
+  .tactile-btn-primary {
+    background-color: var(--color-electric-orange);
+    color: white;
+    border: 3px solid var(--color-dark-espresso);
+    box-shadow: 4px 4px 0px var(--color-deep-cocoa);
+    transition: all 0.1s ease;
+  }
+
+  .tactile-btn-primary:hover {
+    background-color: var(--color-soft-tangerine);
+    transform: translate(1px, 1px);
+    box-shadow: 3px 3px 0px var(--color-deep-cocoa);
+  }
+
+  .tactile-btn-primary:active {
+    transform: translate(4px, 4px);
+    box-shadow: 0px 0px 0px var(--color-deep-cocoa);
+  }
+
+  .tactile-btn-secondary {
+    background-color: var(--color-soft-cream);
+    color: var(--color-dark-espresso);
+    border: 3px solid var(--color-dark-espresso);
+    box-shadow: 4px 4px 0px var(--color-deep-cocoa);
+    transition: all 0.1s ease;
+  }
+
+  .tactile-btn-secondary:hover {
+    transform: translate(1px, 1px);
+    box-shadow: 3px 3px 0px var(--color-deep-cocoa);
+  }
+
+  .tactile-btn-secondary:active {
+    transform: translate(4px, 4px);
+    box-shadow: 0px 0px 0px var(--color-deep-cocoa);
+  }
+
+  /* Custom Checkbox Tactile */
+  .board-checkbox {
+    @apply appearance-none w-6 h-6 border-3 border-dark-espresso bg-soft-cream rounded-lg cursor-pointer transition-all;
+    box-shadow: 3px 3px 0px var(--color-deep-cocoa);
+  }
+
+  .board-checkbox:checked {
+    @apply bg-electric-orange;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+    background-size: 80%;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
+  .board-checkbox:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0px 0px 0px var(--color-deep-cocoa);
+  }
+
+  .paper-texture {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  }
 }
