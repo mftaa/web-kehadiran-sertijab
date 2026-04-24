@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { registrationSchema, type RegistrationFormValues } from '@/lib/schema';
 import { Input, Button, Select, cn } from '@/components/ui';
@@ -26,6 +26,7 @@ export default function RegistrationForm() {
     register,
     handleSubmit,
     watch,
+    control,
     formState: { errors },
     trigger,
   } = useForm<RegistrationFormValues>({
@@ -188,26 +189,44 @@ export default function RegistrationForm() {
           
           <div className="space-y-4 pt-4 border-t-4 border-dark-espresso/10">
             <label className="block text-sm font-subhead font-bold text-dark-espresso tracking-widest uppercase">STATUS KEHADIRAN</label>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <label className="flex-1 flex items-center justify-center space-x-3 cursor-pointer p-5 tactile-input rounded-2xl group has-[:checked]:bg-electric-orange transition-all">
-                <input
-                  type="radio"
-                  value="true"
-                  {...register('isPresent')}
-                  className="board-checkbox"
-                />
-                <span className="text-amber-800 font-bold text-lg tracking-wide uppercase group-has-[:checked]:text-white transition-colors">HADIR</span>
-              </label>
-              <label className="flex-1 flex items-center justify-center space-x-3 cursor-pointer p-5 tactile-input rounded-2xl group has-[:checked]:bg-rustic-brown transition-all">
-                <input
-                  type="radio"
-                  value="false"
-                  {...register('isPresent')}
-                  className="board-checkbox"
-                />
-                <span className="text-amber-800 font-bold text-lg tracking-wide uppercase group-has-[:checked]:text-white transition-colors">TIDAK</span>
-              </label>
-            </div>
+            <Controller
+              name="isPresent"
+              control={control}
+              render={({ field }) => (
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <label className={cn(
+                    "flex-1 flex items-center justify-center space-x-3 cursor-pointer p-5 tactile-input rounded-2xl group transition-all",
+                    field.value === true && "!bg-electric-orange"
+                  )}>
+                    <input
+                      type="radio"
+                      checked={field.value === true}
+                      onChange={() => field.onChange(true)}
+                      className="board-checkbox"
+                    />
+                    <span className={cn(
+                      "font-bold text-lg tracking-wide uppercase transition-colors",
+                      field.value === true ? "text-white" : "text-amber-800"
+                    )}>HADIR</span>
+                  </label>
+                  <label className={cn(
+                    "flex-1 flex items-center justify-center space-x-3 cursor-pointer p-5 tactile-input rounded-2xl group transition-all",
+                    field.value === false && "!bg-rustic-brown"
+                  )}>
+                    <input
+                      type="radio"
+                      checked={field.value === false}
+                      onChange={() => field.onChange(false)}
+                      className="board-checkbox"
+                    />
+                    <span className={cn(
+                      "font-bold text-lg tracking-wide uppercase transition-colors",
+                      field.value === false ? "text-white" : "text-amber-800"
+                    )}>TIDAK</span>
+                  </label>
+                </div>
+              )}
+            />
             {errors.isPresent && <p className="mt-2 text-xs text-red-600 font-bold uppercase tracking-tight text-center">! Pilih status kehadiran</p>}
           </div>
 

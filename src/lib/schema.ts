@@ -6,7 +6,7 @@ export const registrationSchema = z.object({
   class: z.string().min(1, 'Kelas harus diisi'),
   studyProgram: z.string().min(1, 'Program studi harus diisi'),
   whatsapp: z.string().min(10, 'Nomor WhatsApp minimal 10 digit'),
-  isPresent: z.preprocess((val) => val === 'true' || val === true, z.boolean()),
+  isPresent: z.boolean(),
   // Conditional fields (Present)
   foodAllergy: z.string().optional(),
   illnessHistory: z.string().optional(),
