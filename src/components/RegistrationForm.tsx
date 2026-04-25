@@ -17,10 +17,10 @@ const paymentMethods = [
 ];
 
 const galleryPhotos = [
-  'sertijab1.JPG',
-  'sertijab2.JPG',
-  'sertijab3.JPG',
-  'sertijab4.JPG',
+  'sertijab1.jpg',
+  'sertijab2.jpg',
+  'sertijab3.jpg',
+  'sertijab4.jpg',
 ];
 
 export default function RegistrationForm() {
