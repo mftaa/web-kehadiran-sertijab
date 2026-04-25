@@ -15,7 +15,7 @@ export default function Home() {
       </div>
       
       <footer className="mt-8 mb-6 text-center text-xs font-subhead text-soft-tangerine tracking-[0.2em] uppercase font-bold text-shadow-tactile">
-        &copy; 2026 UKM PCC POLINES // THE BOARD GAME EDITION // ALL RIGHTS RESERVED.
+        &copy; 2026 UKM PCC POLINES // SERTIJAB 2026 Merawat Amanah, Mewujudkan Arah // ALL RIGHTS RESERVED.
       </footer>
     </main>
   );

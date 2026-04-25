@@ -9,17 +9,35 @@ export function cn(...inputs: ClassValue[]) {
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
+  required?: boolean;
 }
 
+const FieldLabel = ({ label, required }: { label?: string; required?: boolean }) => {
+  if (!label) return null;
+  
+  return (
+    <div className="flex items-center justify-between mb-2">
+      <label className="block text-sm font-subhead font-bold text-dark-espresso uppercase tracking-wider">
+        {label.replace(/\s*\(REQUIRED\)/i, '').replace(/\s*\(OPTIONAL\)/i, '')}
+      </label>
+      {required ? (
+        <span className="text-[10px] px-2 py-0.5 bg-electric-orange text-white font-bold rounded-full tracking-tighter uppercase animate-pulse">
+          Wajib
+        </span>
+      ) : (
+        <span className="text-[10px] px-2 py-0.5 bg-dark-espresso/10 text-dark-espresso/60 font-bold rounded-full tracking-tighter uppercase">
+          Opsional
+        </span>
+      )}
+    </div>
+  );
+};
+
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, className, ...props }, ref) => {
+  ({ label, error, required, className, ...props }, ref) => {
     return (
       <div className="w-full">
-        {label && (
-          <label className="block mb-2 text-sm font-subhead font-bold text-dark-espresso uppercase tracking-wider">
-            {label}
-          </label>
-        )}
+        <FieldLabel label={label} required={required || props.required} />
         <input
           ref={ref}
           className={cn(
@@ -57,18 +75,15 @@ export const Button = ({ variant = 'primary', className, children, ...props }: B
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;
+  required?: boolean;
   options: { label: string; value: string }[];
 }
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ label, error, options, className, ...props }, ref) => {
+  ({ label, error, required, options, className, ...props }, ref) => {
     return (
       <div className="w-full">
-        {label && (
-          <label className="block mb-2 text-sm font-subhead font-bold text-dark-espresso uppercase tracking-wider">
-            {label}
-          </label>
-        )}
+        <FieldLabel label={label} required={required || props.required} />
         <div className="relative">
           <select
             ref={ref}

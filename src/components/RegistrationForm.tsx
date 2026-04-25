@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { registrationSchema, type RegistrationFormValues } from '@/lib/schema';
 import { Input, Button, Select, cn } from '@/components/ui';
 import { createClient } from '@/utils/supabase/client';
-import { Upload, CheckCircle2, AlertCircle, Loader2, ArrowRight, ArrowLeft, Send, Sparkles } from 'lucide-react';
+import { Upload, CheckCircle2, AlertCircle, Loader2, ArrowRight, ArrowLeft, Send, Sparkles, Download, Printer } from 'lucide-react';
 
 const paymentMethods = [
   { label: 'BNI', value: 'BNI' },
@@ -20,6 +20,7 @@ export default function RegistrationForm() {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [submittedData, setSubmittedData] = useState<RegistrationFormValues | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const {
@@ -29,18 +30,35 @@ export default function RegistrationForm() {
     control,
     formState: { errors },
     trigger,
+    setValue,
   } = useForm<RegistrationFormValues>({
     resolver: zodResolver(registrationSchema),
     defaultValues: {
       isPresent: true,
       hasVehicle: false,
       readyToDrive: false,
+      absenceReason: '',
     },
   });
 
   const isPresent = watch('isPresent');
   const paymentProof = watch('paymentProof');
   const permissionProof = watch('permissionProof');
+
+  // Clear errors and values when switching attendance status
+  React.useEffect(() => {
+    if (isPresent) {
+      setValue('absenceReason', '');
+      setValue('permissionProof', undefined);
+    } else {
+      setValue('paymentMethod', undefined);
+      setValue('paymentProof', undefined);
+      setValue('foodAllergy', '');
+      setValue('illnessHistory', '');
+      setValue('hasVehicle', false);
+      setValue('readyToDrive', false);
+    }
+  }, [isPresent, setValue]);
 
   const nextStep = async () => {
     const fieldsToValidate = ['fullName', 'nim', 'class', 'studyProgram', 'whatsapp', 'isPresent'] as const;
@@ -51,6 +69,52 @@ export default function RegistrationForm() {
     } else {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  };
+
+  const downloadReceipt = () => {
+    if (!submittedData) return;
+    
+    const receiptText = `
+========================================
+       BUKTI PENDAFTARAN SERTIJAB
+          UKM PCC POLINES 2026
+========================================
+ID PENDAFTARAN: PCC-${submittedData.nim.replace(/\./g, '')}
+WAKTU: ${new Date().toLocaleString('id-ID')}
+----------------------------------------
+NAMA      : ${submittedData.fullName.toUpperCase()}
+NIM       : ${submittedData.nim}
+KELAS     : ${submittedData.class}
+PRODI     : ${submittedData.studyProgram}
+WHATSAPP  : ${submittedData.whatsapp}
+STATUS    : ${submittedData.isPresent ? 'HADIR' : 'TIDAK HADIR'}
+
+${submittedData.isPresent ? `
+DETAIL KEHADIRAN:
+- ALERGI      : ${submittedData.foodAllergy || '-'}
+- RIWAYAT SAKIT: ${submittedData.illnessHistory || '-'}
+- BAWA MOTOR  : ${submittedData.hasVehicle ? 'YA' : 'TIDAK'}
+- SIAP BONCENG : ${submittedData.readyToDrive ? 'YA' : 'TIDAK'}
+- METODE BAYAR : ${submittedData.paymentMethod}
+` : `
+DETAIL KETIDAKHADIRAN:
+- ALASAN: ${submittedData.absenceReason}
+`}
+----------------------------------------
+SIMPAN BUKTI INI UNTUK VERIFIKASI
+TERIMA KASIH TELAH MENDAFTAR!
+========================================
+    `.trim();
+
+    const blob = new Blob([receiptText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Receipt_Sertijab_${submittedData.nim}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const onSubmit = async (data: RegistrationFormValues) => {
@@ -110,6 +174,7 @@ export default function RegistrationForm() {
         throw new Error(submitError.message);
       }
 
+      setSubmittedData(data);
       setIsSuccess(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan saat mendaftar');
@@ -118,20 +183,78 @@ export default function RegistrationForm() {
     }
   };
 
-  if (isSuccess) {
+  if (isSuccess && submittedData) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 tactile-card text-center relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-2 bg-electric-orange"></div>
-        <div className="bg-green-100 p-6 rounded-full mb-8 border-4 border-green-600 shadow-[4px_4px_0px_#166534]">
-          <CheckCircle2 className="w-16 h-16 text-green-600" />
+      <div className="flex flex-col items-center p-6 md:p-12 tactile-card relative overflow-hidden animate-in zoom-in-95 duration-500">
+        <div className="absolute top-0 left-0 w-full h-3 bg-green-500"></div>
+        
+        <div className="bg-green-100 p-4 rounded-full mb-6 border-4 border-green-600 shadow-[4px_4px_0px_#166534]">
+          <CheckCircle2 className="w-10 h-10 text-green-600" />
         </div>
-        <h2 className="text-4xl font-display text-dark-espresso mb-4 tracking-wide text-shadow-orange">BERHASIL!</h2>
-        <p className="text-rustic-brown font-body font-bold text-lg max-w-md mx-auto mb-10 leading-relaxed">
-          DATA KAMU SUDAH MASUK KE PAPAN PERMAINAN. SAMPAI JUMPA DI SERTIJAB 2026!
-        </p>
-        <Button onClick={() => window.location.reload()} className="group">
-          MAIN LAGI <Sparkles className="w-5 h-5 ml-2 group-hover:rotate-12 transition-transform" />
-        </Button>
+        
+        <h2 className="text-3xl font-display text-dark-espresso mb-2 tracking-wide text-shadow-orange">BERHASIL TERDAFTAR!</h2>
+        <p className="text-rustic-brown font-body font-bold text-sm mb-8 uppercase tracking-widest">PCC BOARDING PASS: 2026-OK</p>
+
+        {/* Receipt UI */}
+        <div className="w-full max-w-md bg-white border-4 border-dark-espresso p-6 mb-8 relative shadow-[8px_8px_0px_rgba(0,0,0,0.1)]">
+          <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-8 bg-soft-cream border-r-4 border-dark-espresso rounded-r-full"></div>
+          <div className="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-8 bg-soft-cream border-l-4 border-dark-espresso rounded-l-full"></div>
+          
+          <div className="text-center border-b-2 border-dashed border-dark-espresso/30 pb-4 mb-4">
+            <p className="font-display text-xl text-dark-espresso">SERTIJAB 2026</p>
+            <p className="text-[10px] font-subhead font-bold text-deep-cocoa/60 tracking-[0.2em] uppercase">Bukti Pendaftaran Resmi</p>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex justify-between text-[11px] font-subhead font-bold text-deep-cocoa/50">
+              <span>NAMA</span>
+              <span className="text-right text-dark-espresso">{submittedData.fullName.toUpperCase()}</span>
+            </div>
+            <div className="flex justify-between text-[11px] font-subhead font-bold text-deep-cocoa/50">
+              <span>NIM</span>
+              <span className="text-right text-dark-espresso">{submittedData.nim}</span>
+            </div>
+            <div className="flex justify-between text-[11px] font-subhead font-bold text-deep-cocoa/50">
+              <span>KELAS</span>
+              <span className="text-right text-dark-espresso">{submittedData.class}</span>
+            </div>
+            <div className="flex justify-between text-[11px] font-subhead font-bold text-deep-cocoa/50">
+              <span>STATUS</span>
+              <span className={cn(
+                "text-right font-black px-2 py-0.5 rounded",
+                submittedData.isPresent ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+              )}>
+                {submittedData.isPresent ? 'HADIR' : 'ABSEN'}
+              </span>
+            </div>
+            
+            {submittedData.isPresent && (
+              <div className="flex justify-between text-[11px] font-subhead font-bold text-deep-cocoa/50">
+                <span>METODE BAYAR</span>
+                <span className="text-right text-dark-espresso uppercase">{submittedData.paymentMethod}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-6 pt-4 border-t-2 border-dashed border-dark-espresso/30 text-center">
+            <p className="text-[10px] font-body font-bold text-red-600 uppercase mb-2">!!! SIMPAN SCREENSHOT/DOWNLOAD INI SEBAGAI BUKTI !!!</p>
+            <div className="bg-dark-espresso text-white py-2 px-4 inline-block rounded font-mono text-xs">
+              ID: PCC-{submittedData.nim.replace(/\./g, '')}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md">
+          <Button onClick={downloadReceipt} variant="secondary" className="flex items-center justify-center">
+            <Download className="w-5 h-5 mr-2" /> DOWNLOAD
+          </Button>
+          <Button onClick={() => window.print()} variant="secondary" className="flex items-center justify-center">
+            <Printer className="w-5 h-5 mr-2" /> CETAK
+          </Button>
+          <Button onClick={() => window.location.reload()} className="sm:col-span-2 group">
+            MAIN LAGI <Sparkles className="w-5 h-5 ml-2 group-hover:rotate-12 transition-transform" />
+          </Button>
+        </div>
       </div>
     );
   }
@@ -156,24 +279,28 @@ export default function RegistrationForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Input
               label="NAMA LENGKAP"
+              required
               placeholder="Ketik nama lengkap..."
               {...register('fullName')}
               error={errors.fullName?.message}
             />
             <Input
               label="NIM"
+              required
               placeholder="Contoh: 4.33.xx.x.xx"
               {...register('nim')}
               error={errors.nim?.message}
             />
             <Input
               label="KELAS"
+              required
               placeholder="Contoh: IK-1A"
               {...register('class')}
               error={errors.class?.message}
             />
             <Input
               label="PROGRAM STUDI"
+              required
               placeholder="Contoh: D3 - Teknik Informatika"
               {...register('studyProgram')}
               error={errors.studyProgram?.message}
@@ -182,13 +309,17 @@ export default function RegistrationForm() {
           
           <Input
             label="NOMOR WHATSAPP"
+            required
             placeholder="08xxxxxxxxxx"
             {...register('whatsapp')}
             error={errors.whatsapp?.message}
           />
           
           <div className="space-y-4 pt-4 border-t-4 border-dark-espresso/10">
-            <label className="block text-sm font-subhead font-bold text-dark-espresso tracking-widest uppercase">STATUS KEHADIRAN</label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-subhead font-bold text-dark-espresso tracking-widest uppercase">STATUS KEHADIRAN</label>
+              <span className="text-[10px] px-2 py-0.5 bg-electric-orange text-white font-bold rounded-full tracking-tighter uppercase animate-pulse">Wajib</span>
+            </div>
             <Controller
               name="isPresent"
               control={control}
@@ -255,26 +386,41 @@ export default function RegistrationForm() {
                 />
               </div>
               <div className="flex flex-col sm:flex-row gap-4 py-4">
-                <label className="flex-1 flex items-center space-x-3 cursor-pointer p-4 tactile-input rounded-xl has-[:checked]:bg-soft-tangerine/20">
-                  <input
-                    type="checkbox"
-                    {...register('hasVehicle')}
-                    className="board-checkbox"
-                  />
-                  <span className="font-subhead font-bold text-dark-espresso text-sm tracking-tight uppercase">BAWA KENDARAAN</span>
+                <label className="flex-1 flex flex-col p-4 tactile-input rounded-xl has-[:checked]:bg-soft-tangerine/20 cursor-pointer">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-subhead font-bold text-dark-espresso text-sm tracking-tight uppercase">BAWA KENDARAAN</span>
+                    <span className="text-[10px] px-2 py-0.5 bg-dark-espresso/10 text-dark-espresso/60 font-bold rounded-full tracking-tighter uppercase">Opsional</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      {...register('hasVehicle')}
+                      className="board-checkbox"
+                    />
+                    <span className="text-xs font-bold text-dark-espresso/40">SAYA MEMBAWA MOTOR</span>
+                  </div>
                 </label>
-                <label className="flex-1 flex items-center space-x-3 cursor-pointer p-4 tactile-input rounded-xl has-[:checked]:bg-soft-tangerine/20">
-                  <input
-                    type="checkbox"
-                    {...register('readyToDrive')}
-                    className="board-checkbox"
-                  />
-                  <span className="font-subhead font-bold text-dark-espresso text-sm tracking-tight uppercase">SIAP BONCENGIN</span>
+                <label className="flex-1 flex flex-col p-4 tactile-input rounded-xl has-[:checked]:bg-soft-tangerine/20 cursor-pointer">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-subhead font-bold text-dark-espresso text-sm tracking-tight uppercase">SIAP BONCENGIN</span>
+                    <span className="text-[10px] px-2 py-0.5 bg-dark-espresso/10 text-dark-espresso/60 font-bold rounded-full tracking-tighter uppercase">Opsional</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      {...register('readyToDrive')}
+                      className="board-checkbox"
+                    />
+                    <span className="text-xs font-bold text-dark-espresso/40">SIAP MEMBONCENG TEMAN</span>
+                  </div>
                 </label>
               </div>
               
               <div className="space-y-4 pt-4 border-t-4 border-dark-espresso/10">
-                <label className="block text-sm font-subhead font-bold text-dark-espresso tracking-widest uppercase text-center">METODE PEMBAYARAN</label>
+                <div className="flex items-center justify-between mb-2 px-2">
+                  <label className="block text-sm font-subhead font-bold text-dark-espresso tracking-widest uppercase">METODE PEMBAYARAN</label>
+                  <span className="text-[10px] px-2 py-0.5 bg-electric-orange text-white font-bold rounded-full tracking-tighter uppercase animate-pulse">Wajib</span>
+                </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {paymentMethods.map((m) => (
                     <label key={m.value} className="flex flex-col items-center justify-center p-4 tactile-input rounded-xl cursor-pointer has-[:checked]:bg-electric-orange has-[:checked]:text-white transition-all group">
@@ -291,7 +437,10 @@ export default function RegistrationForm() {
               </div>
               
               <div className="pt-4">
-                <label className="block mb-3 text-sm font-subhead font-bold text-dark-espresso tracking-widest uppercase">UPLOAD BUKTI TRANSFER</label>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="block text-sm font-subhead font-bold text-dark-espresso tracking-widest uppercase">UPLOAD BUKTI TRANSFER</label>
+                  <span className="text-[10px] px-2 py-0.5 bg-electric-orange text-white font-bold rounded-full tracking-tighter uppercase animate-pulse">Wajib</span>
+                </div>
                 <div className="relative group">
                   <label className="flex flex-col items-center justify-center w-full h-40 border-4 border-dark-espresso border-dashed rounded-2xl cursor-pointer bg-soft-cream/50 hover:bg-soft-cream transition-colors overflow-hidden">
                     <div className="flex flex-col items-center justify-center pt-5 pb-6 px-4 text-center">
@@ -311,7 +460,10 @@ export default function RegistrationForm() {
           ) : (
             <>
               <div className="space-y-4">
-                <label className="block text-sm font-subhead font-bold text-dark-espresso tracking-widest uppercase">ALASAN KETIDAKHADIRAN</label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-subhead font-bold text-dark-espresso tracking-widest uppercase">ALASAN KETIDAKHADIRAN</label>
+                  <span className="text-[10px] px-2 py-0.5 bg-electric-orange text-white font-bold rounded-full tracking-tighter uppercase animate-pulse">Wajib</span>
+                </div>
                 <textarea
                   {...register('absenceReason')}
                   className={cn(
@@ -324,7 +476,10 @@ export default function RegistrationForm() {
                 {errors.absenceReason && <p className="mt-2 text-xs text-red-600 font-bold uppercase tracking-tight">! {errors.absenceReason.message}</p>}
               </div>
               <div className="pt-4">
-                <label className="block mb-3 text-sm font-subhead font-bold text-dark-espresso tracking-widest uppercase">UPLOAD SURAT IZIN (PDF)</label>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="block text-sm font-subhead font-bold text-dark-espresso tracking-widest uppercase">UPLOAD SURAT IZIN</label>
+                  <span className="text-[10px] px-2 py-0.5 bg-electric-orange text-white font-bold rounded-full tracking-tighter uppercase animate-pulse">Wajib (PDF)</span>
+                </div>
                 <div className="relative group">
                   <label className="flex flex-col items-center justify-center w-full h-40 border-4 border-dark-espresso border-dashed rounded-2xl cursor-pointer bg-soft-cream/50 hover:bg-soft-cream transition-colors overflow-hidden">
                     <div className="flex flex-col items-center justify-center pt-5 pb-6 px-4 text-center">
