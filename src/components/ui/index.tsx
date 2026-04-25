@@ -37,9 +37,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, required, className, ...props }, ref) => {
     return (
       <div className="w-full">
-        <FieldLabel label={label} required={required || props.required} />
+        <FieldLabel label={label} required={required} />
         <input
           ref={ref}
+          required={required}
           className={cn(
             "text-dark-espresso text-base block w-full p-4 font-body tactile-input placeholder:text-deep-cocoa/40 outline-none rounded-xl",
             error && "border-red-600 focus:border-red-600",
@@ -83,10 +84,11 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
   ({ label, error, required, options, className, ...props }, ref) => {
     return (
       <div className="w-full">
-        <FieldLabel label={label} required={required || props.required} />
+        <FieldLabel label={label} required={required} />
         <div className="relative">
           <select
             ref={ref}
+            required={required}
             className={cn(
               "text-dark-espresso text-base block w-full p-4 font-body tactile-input appearance-none cursor-pointer outline-none rounded-xl",
               error && "border-red-600",

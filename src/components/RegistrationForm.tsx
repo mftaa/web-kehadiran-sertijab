@@ -23,6 +23,19 @@ export default function RegistrationForm() {
   const [submittedData, setSubmittedData] = useState<RegistrationFormValues | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Check if already registered on mount
+  React.useEffect(() => {
+    const savedData = localStorage.getItem('pcc_sertijab_registration');
+    if (savedData) {
+      try {
+        setSubmittedData(JSON.parse(savedData));
+        setIsSuccess(true);
+      } catch (e) {
+        console.error("Error parsing saved data", e);
+      }
+    }
+  }, []);
+
   const {
     register,
     handleSubmit,
@@ -174,6 +187,8 @@ TERIMA KASIH TELAH MENDAFTAR!
         throw new Error(submitError.message);
       }
 
+      // Save to localStorage to prevent multiple submissions
+      localStorage.setItem('pcc_sertijab_registration', JSON.stringify(data));
       setSubmittedData(data);
       setIsSuccess(true);
     } catch (err) {
@@ -192,8 +207,8 @@ TERIMA KASIH TELAH MENDAFTAR!
           <CheckCircle2 className="w-10 h-10 text-green-600" />
         </div>
         
-        <h2 className="text-3xl font-display text-dark-espresso mb-2 tracking-wide text-shadow-orange">BERHASIL TERDAFTAR!</h2>
-        <p className="text-rustic-brown font-body font-bold text-sm mb-8 uppercase tracking-widest">PCC BOARDING PASS: 2026-OK</p>
+        <h2 className="text-3xl font-display text-dark-espresso mb-2 tracking-wide text-shadow-orange text-center uppercase">Pendaftaran Selesai!</h2>
+        <p className="text-rustic-brown font-body font-bold text-sm mb-8 uppercase tracking-widest text-center">Data kamu sudah tersimpan di sistem kami.</p>
 
         {/* Receipt UI */}
         <div className="w-full max-w-md bg-white border-4 border-dark-espresso p-6 mb-8 relative shadow-[8px_8px_0px_rgba(0,0,0,0.1)]">
@@ -251,8 +266,8 @@ TERIMA KASIH TELAH MENDAFTAR!
           <Button onClick={() => window.print()} variant="secondary" className="flex items-center justify-center">
             <Printer className="w-5 h-5 mr-2" /> CETAK
           </Button>
-          <Button onClick={() => window.location.reload()} className="sm:col-span-2 group">
-            MAIN LAGI <Sparkles className="w-5 h-5 ml-2 group-hover:rotate-12 transition-transform" />
+          <Button onClick={() => window.location.href = 'https://pccpolines.org'} className="sm:col-span-2 group">
+            KEMBALI KE BERANDA <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
         </div>
       </div>
