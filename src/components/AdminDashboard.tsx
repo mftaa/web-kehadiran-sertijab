@@ -357,7 +357,7 @@ export default function AdminDashboard({ initialData }: { initialData: Registrat
       ) : activeTab === 'allergy' ? (
         <div className="space-y-6 animate-in slide-in-from-bottom-5 duration-500">
           <div className="flex justify-between items-center">
-            <h3 className="font-display text-2xl text-dark-espresso flex items-center">
+            <h3 className="font-display text-2xl text-cream flex items-center">
               <AlertTriangle className="w-6 h-6 mr-2 text-electric-orange" /> REKAP ALERGI MAKANAN
             </h3>
             <Button 
@@ -411,7 +411,7 @@ export default function AdminDashboard({ initialData }: { initialData: Registrat
       ) : (
         <div className="space-y-6 animate-in slide-in-from-bottom-5 duration-500">
           <div className="flex justify-between items-center">
-            <h3 className="font-display text-2xl text-dark-espresso flex items-center">
+            <h3 className="font-display text-2xl text-cream flex items-center">
               <HeartPulse className="w-6 h-6 mr-2 text-rustic-brown" /> REKAP RIWAYAT PENYAKIT
             </h3>
             <Button 

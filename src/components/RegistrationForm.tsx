@@ -547,7 +547,7 @@ TERIMA KASIH TELAH MENDAFTAR!
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       {paymentMethods.map((m) => (
-                        <label key={m.value} className="flex flex-col items-center justify-center p-4 tactile-input rounded-xl cursor-pointer has-[:checked]:bg-electric-orange has-[:checked]:text-white transition-all group text-center">
+                        <label key={m.value} className="flex flex-col items-center justify-center p-4 tactile-input rounded-xl cursor-pointer text-dark-espresso has-[:checked]:bg-electric-orange has-[:checked]:text-white transition-all group text-center">
                           <input
                             type="radio"
                             value={m.value}
@@ -568,6 +568,9 @@ TERIMA KASIH TELAH MENDAFTAR!
                           </div>
                           <div className="text-xs font-bold text-cream/60 uppercase tracking-widest">
                             A.N {paymentMethods.find(m => m.value === paymentMethod)?.name}
+                          </div>
+                          <div className="mt-3 text-lg font-bold text-electric-orange tracking-widest uppercase">
+                            TOTAL: Rp 30.000
                           </div>
                           <button 
                             type="button"
